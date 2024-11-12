@@ -1,0 +1,3 @@
+[submodule "ext/quadtree"]
+	path = ext/quadtree
+	url = git@github.com:pvigier/Quadtree.git
