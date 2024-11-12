@@ -8,7 +8,7 @@
 #include "Box.h"
 #include "Quadtree.h"
 #include "linalg.h"
-
+#include "SFML/Graphics.hpp"
 
 typedef linalg::aliases::float2 Point;
 
@@ -25,6 +25,12 @@ class Boid {
   void updatePosition(const float &timestamp, const quadtree::Quadtree<std::shared_ptr<Boid>, decltype(&Boid::getBox)
   > &tree) {
     // complete your code camachito
+  }
+  void draw(sf::RenderWindow& window) const {
+    sf::CircleShape circle(5.);
+    circle.setPosition(position.x, position.y);
+    circle.setFillColor(sf::Color::Green);
+    window.draw(circle);
   }
 };
 
