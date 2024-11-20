@@ -12,7 +12,8 @@ include_directories(${SFML_INCLUDE_DIR})
 find_package(OpenMP REQUIRED)
 
 add_executable(Parallel_Boids src/main.cpp
-        src/Boid.h)
+        src/Boid.h
+        src/Constants.h)
 target_link_libraries(Parallel_Boids PUBLIC OpenMP::OpenMP_CXX)
 target_link_libraries(Parallel_Boids PRIVATE quadtree)
 target_include_directories(Parallel_Boids PRIVATE ${CMAKE_SOURCE_DIR}/ext/quadtree/include)
