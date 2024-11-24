@@ -33,7 +33,37 @@ public:
         add(mRoot.get(), 0, mBox, value);
     }
 
-    void remove(const T& value)
+   void bulk_add(const std::vector<T>& values) {
+      if (isLeaf(mRoot.get())) {
+        split(mRoot.get(), mBox);
+      }
+      assert(!isLeaf(mRoot.get()));
+      std::array<std::vector<T>, 4> quadrantValues;
+      for (const auto& value : values) {
+        int quadrant = getQuadrant(mBox, mGetBox(value));
+        if (quadrant != -1) {
+         quadrantValues[quadrant].push_back(value);
+        } else {
+          mRoot->values.push_back(value);
+        }
+      }
+
+#pragma omp parallel for
+      for (int i = 0; i < 4; ++i) {
+        if (!quadrantValues[i].empty()) {
+          Box<Float> childBox = computeBox(mBox, i);
+          for (const auto& value : quadrantValues[i]) {
+            add(mRoot->children[i].get(), 1, childBox, value);
+          }
+        }
+      }
+    }
+
+    void clear() {
+      for(int i = 0; i < 4; i++) mRoot->children[i].reset();
+   }
+
+  void remove(const T& value)
     {
         remove(mRoot.get(), mBox, value);
     }

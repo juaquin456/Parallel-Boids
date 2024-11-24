@@ -32,10 +32,11 @@ class Boid {
  public:
 
   struct Interface {
+   public:
     Point idx_position;
-    std::shared_ptr<Boid> boid;
+    Boid* boid;
 
-    explicit Interface(const std::shared_ptr<Boid>& b): idx_position(b->position), boid(b) {}
+    explicit Interface(Boid* b): idx_position(b->position), boid(b) {}
 
     void update() {
       idx_position = boid->position;
@@ -52,7 +53,7 @@ class Boid {
 
   Boid(const Point &pos, const Point &vel, const bool& predator) : position(pos), velocity(vel), predator(predator) {}
 
-  static Interface getInterface(const std::shared_ptr<Boid>& p) {
+  static Interface getInterface(Boid* p) {
     return Interface{p};
   }
 
@@ -68,7 +69,7 @@ class Boid {
 
     for (const auto& neighbor: neighbors) {
 
-      if (neighbor.boid.get() == this) continue;
+      if (neighbor.boid == this) continue;
 
       float dx = neighbor.idx_position.x - this->position.x;
       float dy = neighbor.idx_position.y - this->position.y;
