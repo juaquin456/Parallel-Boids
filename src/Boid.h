@@ -57,12 +57,14 @@ class Boid {
     return Interface{p};
   }
 
+  // TODO: UPDATE POSITION - EVALUAR VS POINT Y NORMAL
   void updatePosition(const float &timestamp, const quadtree::Quadtree<Boid::Interface, decltype(&Boid::Interface::getBox)> &tree) {
 
-    float xpos_avg = 0.0f, ypos_avg = 0.0f;
-    float xvel_avg = 0.0f, yvel_avg = 0.0f;
-    float close_dx = 0.0f, close_dy = 0.0f;
-    float neighboring_boids = 0;
+
+    Point pos_avg = {0, 0};
+    Point vel_avg = {0, 0};
+    Point close = {0, 0};
+    int neighboring_boids = 0;
 
     quadtree::Box<float> queryBox(position.x - visual_radius, position.y - visual_radius, 2 * visual_radius, 2 * visual_radius);
     std::vector<Boid::Interface> neighbors = tree.query(queryBox);
@@ -71,49 +73,34 @@ class Boid {
 
       if (neighbor.boid == this) continue;
 
-      float dx = neighbor.idx_position.x - this->position.x;
-      float dy = neighbor.idx_position.y - this->position.y;
-      float distance = std::sqrt(dx * dx + dy * dy);
+      const float distance = linalg::length(neighbor.idx_position - this->position);
 
-      if (distance < protected_radius)
-      {
-        close_dx += this->position.x - neighbor.idx_position.x;
-        close_dy += this->position.y - neighbor.idx_position.y;
-      }
+      if (distance < protected_radius) { close += this->position - neighbor.idx_position; }
       else if (distance < visual_radius)
       {
-        xpos_avg += neighbor.idx_position.x;
-        ypos_avg += neighbor.idx_position.y;
 
-        xvel_avg += neighbor.boid->velocity.x;
-        yvel_avg += neighbor.boid->velocity.y;
+        pos_avg += neighbor.idx_position;
+        vel_avg += neighbor.boid->velocity;
 
         neighboring_boids++;
       }
 
       if (neighbor.boid->predator && distance < visual_radius) {
-        close_dx += this->position.x - neighbor.idx_position.x;
-        close_dy += this->position.y - neighbor.idx_position.y;
+        close += this->position - neighbor.idx_position;
       }
 
     }
 
     if (neighboring_boids > 0) {
-      xpos_avg /= neighboring_boids;
-      ypos_avg /= neighboring_boids;
+      pos_avg /= neighboring_boids;
+      vel_avg /= neighboring_boids;
 
-      xvel_avg /= neighboring_boids;
-      yvel_avg /= neighboring_boids;
-
-      this->velocity.x += (xpos_avg - this->position.x) * centering_factor + (xvel_avg - this->velocity.x) * matching_factor;
-      this->velocity.y += (ypos_avg - this->position.y) * centering_factor + (yvel_avg - this->velocity.y) * matching_factor;
+      this->velocity += (pos_avg - this->position) * centering_factor + (vel_avg - this->velocity) * matching_factor;
     }
 
-    this->velocity.x += close_dx * avoid_factor;
-    this->velocity.y += close_dy * avoid_factor;
+    this->velocity += close * avoid_factor;
 
-    this->position.x += this->velocity.x * timestamp;
-    this->position.y += this->velocity.y * timestamp;
+    this->position += this->velocity * timestamp;
 
     if (this->position.x - Constants::MARGIN <= 0) {
         this->position.x = Constants::WIDTH - Constants::MARGIN;
