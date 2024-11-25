@@ -63,13 +63,17 @@ int main() {
       if (event.type == sf::Event::Closed) window.close();
     }
 
-#pragma omp parallel for
-    for (int i = 0; i < boids.size(); i++) {
+#ifdef PARALLEL
+#pragma omp parallel for default(none) shared(boids, boids_tree) firstprivate(Constants::FIXED_TIME_STEP, Constants::TIME_SCALE) num_threads(Constants::NUM_THREADS)
+#endif
+    for (int i=0; i < boids.size(); ++i) {
       boids[i]->updatePosition(Constants::FIXED_TIME_STEP * Constants::TIME_SCALE, boids_tree);
     }
     std::cerr << elapsed.asSeconds() << std::endl;
 
+#ifdef PARALLEL
 #pragma omp parallel for
+#endif
     for (int i = 0; i < interfaces.size(); i++) {
 #ifndef PARALLEL
       Boid::Interface& boid = interfaces[i];

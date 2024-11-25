@@ -57,7 +57,7 @@ class Boid {
     return Interface{p};
   }
 
-  // TODO: UPDATE POSITION - EVALUAR VS POINT Y NORMAL
+//#pragma omp declare reduction(+ : Point : omp_out = omp_out + omp_in) initializer(omp_priv = {0, 0})
   void updatePosition(const float &timestamp, const quadtree::Quadtree<Boid::Interface, decltype(&Boid::Interface::getBox)> &tree) {
 
 
@@ -69,6 +69,7 @@ class Boid {
     quadtree::Box<float> queryBox(position.x - visual_radius, position.y - visual_radius, 2 * visual_radius, 2 * visual_radius);
     std::vector<Boid::Interface> neighbors = tree.query(queryBox);
 
+//#pragma omp parallel for reduction(+:neighboring_boids, pos_avg, vel_avg, close)
     for (const auto& neighbor: neighbors) {
 
       if (neighbor.boid == this) continue;
