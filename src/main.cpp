@@ -1,20 +1,14 @@
 #include <iostream>
 #include <random>
 #include <omp.h>
-
-#define PARALLEL
-
+#include "GUI.h"
 #include "Quadtree.h"
 #include "Boid.h"
 #include "Constants.h"
 
-#include "SFML/Graphics.hpp"
 using namespace std;
 
-int main() {
-  sf::RenderWindow window(sf::VideoMode(Constants::WIDTH, Constants::HEIGHT), "Boids");
-  window.setFramerateLimit(60);
-
+pair<vector<unique_ptr<Boid>>, vector<Boid::Interface>> generate_boids() {
   vector<unique_ptr<Boid>> boids;
   vector<Boid::Interface> interfaces;
 
@@ -43,58 +37,37 @@ int main() {
     boids.emplace_back(make_unique<Boid>(Point{x, y}, Point{vx, vy}, isPredator));
     interfaces.push_back(Boid::getInterface(boids[i].get()));
   }
+  return {std::move(boids), std::move(interfaces)};
+}
+
+int main() {
+  GUI app{};
+  if (app.init() == -1) return -1;
 
   quadtree::Box<float> universe{0., 0, Constants::WIDTH, Constants::HEIGHT};
   quadtree::Quadtree<Boid::Interface, decltype(&Boid::Interface::getBox)> boids_tree(universe, Boid::Interface::getBox);
-
-#ifndef PARALLEL
-  for (const auto& boidref: interfaces) {
-    boids_tree.add(boidref);
-  }
-#else
+  auto [boids, interfaces] = generate_boids();
   boids_tree.bulk_add(interfaces);
-#endif
 
-  sf::Clock deltaclock;
-  while (window.isOpen()) {
-    sf::Time elapsed = deltaclock.restart();
-    sf::Event event{};
-    while (window.pollEvent(event)) {
-      if (event.type == sf::Event::Closed) window.close();
-    }
-
-#ifdef PARALLEL
-#pragma omp parallel for default(none) shared(boids, boids_tree) firstprivate(Constants::FIXED_TIME_STEP, Constants::TIME_SCALE) num_threads(Constants::NUM_THREADS)
-#endif
+  while (app.is_running()) {
+    app.process_event();
+#pragma omp parallel for default(none) shared(boids, boids_tree) num_threads(Constants::NUM_THREADS)
     for (int i=0; i < boids.size(); ++i) {
       boids[i]->updatePosition(Constants::FIXED_TIME_STEP * Constants::TIME_SCALE, boids_tree);
     }
-    std::cerr << elapsed.asSeconds() << std::endl;
 
-#ifdef PARALLEL
 #pragma omp parallel for
-#endif
     for (int i = 0; i < interfaces.size(); i++) {
-#ifndef PARALLEL
-      Boid::Interface& boid = interfaces[i];
-      boids_tree.remove(boid);
-      boid.update();
-      boids_tree.add(boid);
-#else
       interfaces[i].update();
-#endif
     }
-
-#ifdef PARALLEL
     boids_tree.clear();
     boids_tree.bulk_add(interfaces);
-#endif
-    // redraw
-    window.clear();
-    for (const auto& boid: boids) {
-      boid->draw(window);
-    }
-    window.display();
+
+    SDL_SetRenderDrawColor(app.get_renderer(), 120, 180, 255, 255);
+    SDL_RenderClear(app.get_renderer());
+    for(auto& boid: boids) boid->draw(app.get_renderer());
+    app.draw();
   }
+  app.destroy();
   return 0;
 }

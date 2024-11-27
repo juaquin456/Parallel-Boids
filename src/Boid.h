@@ -8,7 +8,6 @@
 #include "Box.h"
 #include "Quadtree.h"
 #include "linalg.h"
-#include "SFML/Graphics.hpp"
 #include "Constants.h"
 
 typedef linalg::aliases::float2 Point;
@@ -116,11 +115,9 @@ class Boid {
     }
   }
 
-  void draw(sf::RenderWindow& window) const {
-    sf::CircleShape circle(5.);
-    circle.setPosition(position.x, position.y);
-    circle.setFillColor(predator ? sf::Color::Red : sf::Color::Green);
-    window.draw(circle);
+  void draw(SDL_Renderer* renderer) const {
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    SDL_RenderDrawPoint(renderer, position.x, position.y);
   }
 };
 
