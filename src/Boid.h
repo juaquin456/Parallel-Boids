@@ -9,7 +9,7 @@
 #include "Quadtree.h"
 #include "linalg.h"
 #include "SFML/Graphics.hpp"
-#include "Constants.h"
+#include "Helpers.h"
 
 typedef linalg::aliases::float2 Point;
 
