@@ -21,7 +21,7 @@ pair<vector<unique_ptr<Boid>>, vector<Boid::Interface>> generate_boids() {
   std::uniform_real_distribution<float> angleDistribution(0, 2 * M_PI);
   std::uniform_real_distribution<float> speedDistribution(0.5, 3.0);
 
-  for(int i = 0; i < 1000; i++) {
+  for (int i = 0; i < 1000; i++) {
     float x = distributionX(gen);
     float y = distributionY(gen);
 
@@ -42,31 +42,43 @@ pair<vector<unique_ptr<Boid>>, vector<Boid::Interface>> generate_boids() {
 
 int main() {
   GUI app{};
+  Conditions conditions;
+
   if (app.init() == -1) return -1;
 
   quadtree::Box<float> universe{0., 0, Constants::WIDTH, Constants::HEIGHT};
   quadtree::Quadtree<Boid::Interface, decltype(&Boid::Interface::getBox)> boids_tree(universe, Boid::Interface::getBox);
   auto [boids, interfaces] = generate_boids();
   boids_tree.bulk_add(interfaces);
-
+  bool is_parallel = true;
   while (app.is_running()) {
     app.process_event();
-#pragma omp parallel for default(none) shared(boids, boids_tree) num_threads(Constants::NUM_THREADS)
-    for (int i=0; i < boids.size(); ++i) {
-      boids[i]->updatePosition(Constants::FIXED_TIME_STEP * Constants::TIME_SCALE, boids_tree);
-    }
+    if (is_parallel) {
+#pragma omp parallel for num_threads(Constants::NUM_THREADS)
+      for (int i = 0; i < boids.size(); ++i) {
+        boids[i]->updatePosition(Constants::FIXED_TIME_STEP * Constants::TIME_SCALE, boids_tree, conditions);
+      }
 
 #pragma omp parallel for
-    for (int i = 0; i < interfaces.size(); i++) {
-      interfaces[i].update();
+      for (int i = 0; i < interfaces.size(); i++) {
+        interfaces[i].update();
+      }
+      boids_tree.clear();
+      boids_tree.bulk_add(interfaces);
+    } else {
+      for (int i = 0; i < boids.size(); ++i) {
+        boids[i]->updatePosition(Constants::FIXED_TIME_STEP * Constants::TIME_SCALE, boids_tree, conditions);
+      }
+      for (int i = 0; i < interfaces.size(); i++){
+        boids_tree.remove(interfaces[i]);
+        interfaces[i].update();
+        boids_tree.add(interfaces[i]);
+      }
     }
-    boids_tree.clear();
-    boids_tree.bulk_add(interfaces);
-
     SDL_SetRenderDrawColor(app.get_renderer(), 120, 180, 255, 255);
     SDL_RenderClear(app.get_renderer());
-    for(auto& boid: boids) boid->draw(app.get_renderer());
-    app.draw();
+    for (auto &boid : boids) boid->draw(app.get_renderer());
+    app.draw(conditions, is_parallel);
   }
   app.destroy();
   return 0;

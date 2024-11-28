@@ -12,13 +12,7 @@
 
 typedef linalg::aliases::float2 Point;
 
-class Boid {
- private:
-  Point position;
-  Point velocity;
-
-  bool predator = false;
-
+struct Conditions {
   float visual_radius = 50.0f;
   float protected_radius = 15.0f;
 
@@ -27,6 +21,14 @@ class Boid {
   float centering_factor = 0.000002f;
 
   float turn_factor = 0.1f;
+};
+
+class Boid {
+ private:
+  Point position;
+  Point velocity;
+
+  bool predator = false;
 
  public:
 
@@ -57,7 +59,8 @@ class Boid {
   }
 
 //#pragma omp declare reduction(+ : Point : omp_out = omp_out + omp_in) initializer(omp_priv = {0, 0})
-  void updatePosition(const float &timestamp, const quadtree::Quadtree<Boid::Interface, decltype(&Boid::Interface::getBox)> &tree) {
+  void updatePosition(const float &timestamp, const quadtree::Quadtree<Boid::Interface, decltype
+  (&Boid::Interface::getBox)> &tree, const Conditions& c) {
 
 
     Point pos_avg = {0, 0};
@@ -65,7 +68,8 @@ class Boid {
     Point close = {0, 0};
     int neighboring_boids = 0;
 
-    quadtree::Box<float> queryBox(position.x - visual_radius, position.y - visual_radius, 2 * visual_radius, 2 * visual_radius);
+    quadtree::Box<float> queryBox(position.x - c.visual_radius, position.y - c.visual_radius, 2 * c.visual_radius, 2 *
+    c.visual_radius);
     std::vector<Boid::Interface> neighbors = tree.query(queryBox);
 
 //#pragma omp parallel for reduction(+:neighboring_boids, pos_avg, vel_avg, close)
@@ -75,8 +79,8 @@ class Boid {
 
       const float distance = linalg::length(neighbor.idx_position - this->position);
 
-      if (distance < protected_radius) { close += this->position - neighbor.idx_position; }
-      else if (distance < visual_radius)
+      if (distance < c.protected_radius) { close += this->position - neighbor.idx_position; }
+      else if (distance < c.visual_radius)
       {
 
         pos_avg += neighbor.idx_position;
@@ -85,7 +89,7 @@ class Boid {
         neighboring_boids++;
       }
 
-      if (neighbor.boid->predator && distance < visual_radius) {
+      if (neighbor.boid->predator && distance < c.visual_radius) {
         close += this->position - neighbor.idx_position;
       }
 
@@ -95,10 +99,11 @@ class Boid {
       pos_avg /= neighboring_boids;
       vel_avg /= neighboring_boids;
 
-      this->velocity += (pos_avg - this->position) * centering_factor + (vel_avg - this->velocity) * matching_factor;
+      this->velocity += (pos_avg - this->position) * c.centering_factor + (vel_avg - this->velocity) * c
+          .matching_factor;
     }
 
-    this->velocity += close * avoid_factor;
+    this->velocity += close * c.avoid_factor;
 
     this->position += this->velocity * timestamp;
 

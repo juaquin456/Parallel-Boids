@@ -9,6 +9,7 @@
 #include "imgui.h"
 #include "imgui_impl_sdl2.h"
 #include "imgui_impl_sdlrenderer2.h"
+#include "Boid.h"
 
 class GUI {
   bool running;
@@ -48,12 +49,14 @@ class GUI {
     SDL_DestroyWindow(window);
     SDL_Quit();
   }
-  void draw() {
+  void draw(Conditions& c, bool& is_parallel) {
     ImGui_ImplSDLRenderer2_NewFrame();
     ImGui_ImplSDL2_NewFrame();
     ImGui::NewFrame();
     ImGui::Begin("info");
     ImGui::Text("%.1f FPS", io->Framerate);
+    ImGui::SliderFloat("Vision", &c.visual_radius, 1.f, 100.f);
+    ImGui::Checkbox("Parallel?", &is_parallel);
     ImGui::End();
     ImGui::Render();
 
