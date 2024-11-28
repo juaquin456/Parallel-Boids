@@ -55,7 +55,12 @@ class GUI {
     ImGui::NewFrame();
     ImGui::Begin("info");
     ImGui::Text("%.1f FPS", io->Framerate);
-    ImGui::SliderFloat("Vision", &c.visual_radius, 1.f, 100.f);
+    ImGui::SliderFloat("Avoid Factor", &c.avoid_factor, 0.f, 1.f);
+    ImGui::SliderFloat("Centering factor", &c.centering_factor, 0.f, 1.f);
+    ImGui::SliderFloat("Matching factor", &c.matching_factor, 0.f, 1.f);
+    ImGui::SliderFloat("Protected radius", &c.protected_radius, 0.f, 1.f);
+    ImGui::SliderFloat("Turn factor", &c.turn_factor, 0.f, 1.f);
+    ImGui::SliderFloat("Visual radius", &c.visual_radius, 1.f, 100.f);
     ImGui::Checkbox("Parallel?", &is_parallel);
     ImGui::End();
     ImGui::Render();
