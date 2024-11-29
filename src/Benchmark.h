@@ -8,8 +8,15 @@
 class Benchmark {
 private:
     std::vector<double> times;
+    double execution_time = 0.0;
 public:
+    Benchmark() {
+        times.clear();
+        execution_time = 0.0;
+    };
+
     void addTime(const double time) { times.push_back(time); }
+    void addExecutionTime(const double time) { execution_time += time; }
 
     [[nodiscard]] double calculateMean() const {
         if (times.empty()) return 0;

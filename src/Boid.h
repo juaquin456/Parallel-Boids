@@ -8,6 +8,7 @@
 #include "Box.h"
 #include "Quadtree.h"
 #include "linalg.h"
+#include "chrono"
 #include "SFML/Graphics.hpp"
 #include "Helpers.h"
 
@@ -121,12 +122,14 @@ class Boid {
     }
   }
 
+  /*
   void draw(sf::RenderWindow& window) const {
     sf::CircleShape circle(5.);
     circle.setPosition(position.x, position.y);
     circle.setFillColor(predator ? sf::Color::Red : sf::Color::Green);
     window.draw(circle);
   }
+  */
 };
 
 #endif //PARALLEL_BOIDS_SRC_BOID_H_
