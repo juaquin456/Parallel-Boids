@@ -121,7 +121,9 @@ class Boid {
   }
 
   void draw(SDL_Renderer* renderer) const {
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    if (!this->predator)
+      SDL_SetRenderDrawColor(renderer, 30, 10, 50, 255);
+    else SDL_SetRenderDrawColor(renderer, 100, 100, 0, 255);
     SDL_RenderDrawPoint(renderer, position.x, position.y);
   }
 };

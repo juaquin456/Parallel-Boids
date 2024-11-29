@@ -10,7 +10,7 @@
 #include "imgui_impl_sdl2.h"
 #include "imgui_impl_sdlrenderer2.h"
 #include "Boid.h"
-
+#include "Constants.h"
 class GUI {
   bool running;
   SDL_Window* window;
@@ -20,7 +20,7 @@ class GUI {
   int init() {
     running = true;
     if (SDL_Init(SDL_INIT_VIDEO) < 0) return -1;
-    window = SDL_CreateWindow("Boids", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, 800, 600,
+    window = SDL_CreateWindow("Boids", SDL_WINDOWPOS_CENTERED, SDL_WINDOWPOS_CENTERED, Constants::WIDTH, Constants::HEIGHT,
                                           SDL_WINDOW_SHOWN);
     if (!window) {
       SDL_Quit();
