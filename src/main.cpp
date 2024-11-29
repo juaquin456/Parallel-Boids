@@ -123,36 +123,36 @@ void parallel_boids(Benchmark& benchmark) {
 int main(int argc, char *argv[]) {
   if (argc > 1) { Global::NUM_UPDATES = std::stoi(argv[1]); } //* DEFINE UPDATES
 
-  //if (argc > 2) { Global::NUM_BOIDS = std::stoi(argv[2]); }   //* DEFINE BOIDS
+  if (argc > 2) { Global::NUM_BOIDS = std::stoi(argv[2]); }   //* DEFINE BOIDS
 
-  //if (argc > 3) { Global::NUM_THREADS = std::stoi(argv[3]); } //* DEFINE THREADS
+  if (argc > 3) { Global::NUM_THREADS = std::stoi(argv[3]); } //* DEFINE THREADS
 
 
-  const std::vector<int> num_of_threads = {1, 2, 4, 8, 12};
-  const std::vector<int> num_of_boids = {10,100,1000,10000,1000000};
+  // const std::vector<int> num_of_threads = {1, 2, 4, 8, 12};
+  // const std::vector<int> num_of_boids = {10,100,1000,10000,1000000};
 
   auto benchmark = Benchmark();
 
-  for (int i = 0; i < num_of_threads.size(); ++i) {
-    for (int j = 0; j < num_of_boids.size(); ++j) {
-      Global::NUM_THREADS = num_of_threads[i];
-      Global::NUM_BOIDS = num_of_boids[i];
-      Global::NUM_UPDATES = 2000;
+  // for (int i = 0; i < num_of_threads.size(); ++i) {
+    // for (int j = 0; j < num_of_boids.size(); ++j) {
+  // Global::NUM_THREADS;
+  // Global::NUM_BOIDS;
+  // Global::NUM_UPDATES;
 
-      auto start_time = chrono::high_resolution_clock::now();
-      parallel_boids(benchmark);
-      auto end_time = chrono::high_resolution_clock::now();
-      double total_duration = chrono::duration<double, milli>(end_time - start_time).count();
+  auto start_time = chrono::high_resolution_clock::now();
+  parallel_boids(benchmark);
+  auto end_time = chrono::high_resolution_clock::now();
+  double total_duration = chrono::duration<double, milli>(end_time - start_time).count();
 
-      cout << "Resultados para " << Global::NUM_THREADS << " threads y " << Global::NUM_BOIDS << " boids:" << endl;
-      cout << "  Tiempo promedio (ms): " << benchmark.calculateMean() << endl;
-      cout << "  Mediana (ms): " << benchmark.calculateMedian() << endl;
-      cout << "  Desviación estándar (ms): " << benchmark.calculateStandardDeviation() << endl;
-      cout << "  Tiempo total de ejecución (ms): " << total_duration << endl;
-      cout << endl;
-      benchmark.clear();
-    }
-  }
+  cout << "Resultados para " << Global::NUM_THREADS << " threads y " << Global::NUM_BOIDS << " boids:" << endl;
+  cout << "  Tiempo promedio (ms): " << benchmark.calculateMean() << endl;
+  cout << "  Mediana (ms): " << benchmark.calculateMedian() << endl;
+  cout << "  Desviación estándar (ms): " << benchmark.calculateStandardDeviation() << endl;
+  cout << "  Tiempo total de ejecución (ms): " << total_duration << endl;
+  cout << endl;
+  benchmark.clear();
+  //   }
+  // }
 
   return 0;
 }
