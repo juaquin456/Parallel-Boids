@@ -1,6 +1,7 @@
 #ifndef BENCHMARK_H
 #define BENCHMARK_H
 #include <algorithm>
+#include <cmath>
 #include <numeric>
 #include <vector>
 
@@ -10,7 +11,7 @@ private:
 public:
     void addTime(const double time) { times.push_back(time); }
 
-    double calculateMean() {
+    [[nodiscard]] double calculateMean() const {
         if (times.empty()) return 0;
         return std::accumulate(times.begin(), times.end(), 0.0) / static_cast<double>(times.size());
     }
@@ -26,8 +27,16 @@ public:
             : sortedTimes[mid];
     }
 
+    [[nodiscard]] double calculateStandardDeviation() const {
+        if (times.empty()) return 0;
 
+        double mean = calculateMean();
+        double sumSquaredDiff = std::transform_reduce( times.begin(), times.end(), 0.0, std::plus<>(), [mean](const double time) { return std::pow(time - mean, 2); } );
+        return std::sqrt(sumSquaredDiff / (times.size() - 1));
+    }
 
+    void clear() {times.clear();}
+    [[nodiscard]] size_t size() const { return  times.size(); }
 };
 
 #endif //BENCHMARK_H
