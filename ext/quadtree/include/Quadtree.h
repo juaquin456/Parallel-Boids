@@ -48,7 +48,7 @@ public:
         }
       }
 
-#pragma omp parallel for
+#pragma omp parallel for num_threads(4)
       for (int i = 0; i < 4; ++i) {
         if (!quadrantValues[i].empty()) {
           Box<Float> childBox = computeBox(mBox, i);

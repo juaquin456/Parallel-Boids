@@ -1,20 +1,28 @@
 #include <iostream>
 #include <random>
-#include <omp.h>
 
 #define PARALLEL
 
 #include "Quadtree.h"
 #include "Boid.h"
-#include "Constants.h"
+#include "Helpers.h"
 
 #include "SFML/Graphics.hpp"
 using namespace std;
 
-int main() {
+int main(int argc, char *argv[]) {
+
+  if (argc > 1) { Global::NUM_UPDATES = std::stoi(argv[1]); } //* DEFINE UPDATES
+
+  if (argc > 2) { Global::NUM_BOIDS = std::stoi(argv[2]); }   //* DEFINE BOIDS
+
+  if (argc > 3) { Global::NUM_THREADS = std::stoi(argv[3]); } //* DEFINE THREADS
+
+
   sf::RenderWindow window(sf::VideoMode(Constants::WIDTH, Constants::HEIGHT), "Boids");
   window.setFramerateLimit(60);
 
+  //* BOIDS GENERATION
   vector<unique_ptr<Boid>> boids;
   vector<Boid::Interface> interfaces;
 
@@ -27,7 +35,7 @@ int main() {
   std::uniform_real_distribution<float> angleDistribution(0, 2 * M_PI);
   std::uniform_real_distribution<float> speedDistribution(0.5, 3.0);
 
-  for(int i = 0; i < 1000; i++) {
+  for(int i = 0; i < Global::NUM_BOIDS; i++) {
     float x = distributionX(gen);
     float y = distributionY(gen);
 
@@ -44,9 +52,11 @@ int main() {
     interfaces.push_back(Boid::getInterface(boids[i].get()));
   }
 
+  //* QUADTREE GENERATION
   quadtree::Box<float> universe{0., 0, Constants::WIDTH, Constants::HEIGHT};
   quadtree::Quadtree<Boid::Interface, decltype(&Boid::Interface::getBox)> boids_tree(universe, Boid::Interface::getBox);
 
+  //* QUADTREE: FIRST INSERT BOIDS
 #ifndef PARALLEL
   for (const auto& boidref: interfaces) {
     boids_tree.add(boidref);
@@ -55,24 +65,29 @@ int main() {
   boids_tree.bulk_add(interfaces);
 #endif
 
+  //* DO SOMETHING?
   sf::Clock deltaclock;
-  while (window.isOpen()) {
+
+  //* INFINITE EXECUTE
+  while (window.isOpen() && Global::NUM_UPDATES > 0) {
     sf::Time elapsed = deltaclock.restart();
     sf::Event event{};
     while (window.pollEvent(event)) {
       if (event.type == sf::Event::Closed) window.close();
     }
 
+    //* BOIDS UPDATE POSITION: IN TIMESTAMP
 #ifdef PARALLEL
-#pragma omp parallel for default(none) shared(boids, boids_tree) firstprivate(Constants::FIXED_TIME_STEP, Constants::TIME_SCALE) num_threads(Constants::NUM_THREADS)
+#pragma omp parallel for default(none) shared(boids, boids_tree) firstprivate(Constants::FIXED_TIME_STEP, Constants::TIME_SCALE) num_threads(Global::NUM_THREADS)
 #endif
     for (int i=0; i < boids.size(); ++i) {
       boids[i]->updatePosition(Constants::FIXED_TIME_STEP * Constants::TIME_SCALE, boids_tree);
     }
-    std::cerr << elapsed.asSeconds() << std::endl;
+    std::cerr << Global::NUM_UPDATES << std::endl;
 
+    //* BOIDS::INTERFACE UPDATE
 #ifdef PARALLEL
-#pragma omp parallel for
+#pragma omp parallel for default(none) shared(interfaces, boids_tree) num_threads(Global::NUM_THREADS)
 #endif
     for (int i = 0; i < interfaces.size(); i++) {
 #ifndef PARALLEL
@@ -85,16 +100,21 @@ int main() {
 #endif
     }
 
+    //* QUADTREE UPDATE
 #ifdef PARALLEL
     boids_tree.clear();
     boids_tree.bulk_add(interfaces);
 #endif
-    // redraw
+
+    //* REDRAW
     window.clear();
     for (const auto& boid: boids) {
       boid->draw(window);
     }
     window.display();
+
+    Global::NUM_UPDATES--;
   }
+
   return 0;
 }
