@@ -19,6 +19,7 @@ class Boid {
   Point velocity;
 
   bool predator = false;
+  float max_speed = 25;
 
   float visual_radius = 50.0f;
   float protected_radius = 15.0f;
@@ -66,7 +67,7 @@ class Boid {
     Point close = {0, 0};
     int neighboring_boids = 0;
 
-    quadtree::Box<float> queryBox(position.x - visual_radius, position.y - visual_radius, 2 * visual_radius, 2 * visual_radius);
+    const quadtree::Box<float> queryBox(position.x - visual_radius, position.y - visual_radius, 2 * visual_radius, 2 * visual_radius);
     std::vector<Boid::Interface> neighbors = tree.query(queryBox);
 
 //#pragma omp parallel for reduction(+:neighboring_boids, pos_avg, vel_avg, close)
@@ -100,6 +101,10 @@ class Boid {
     }
 
     this->velocity += close * avoid_factor;
+
+    if (linalg::length(this->velocity) > max_speed) {
+      this->velocity = linalg::normalize(this->velocity) * max_speed;
+    }
 
     this->position += this->velocity * timestamp;
 
