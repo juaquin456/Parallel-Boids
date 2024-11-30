@@ -7,43 +7,23 @@
 
 class Benchmark {
 private:
-    std::vector<double> times;
-    double execution_time = 0.0;
+    double time_sum;
+    int update_num;
+
 public:
     Benchmark() {
-        times.clear();
-        execution_time = 0.0;
+        time_sum = 0.0;
+        update_num = 0;
     };
 
-    void addTime(const double time) { times.push_back(time); }
-    void addExecutionTime(const double time) { execution_time += time; }
+    void addTime(const double time) { time_sum += time; update_num++;}
 
     [[nodiscard]] double calculateMean() const {
-        if (times.empty()) return 0;
-        return std::accumulate(times.begin(), times.end(), 0.0) / static_cast<double>(times.size());
+        if (update_num <= 0) { return 0.0; }
+        return time_sum / update_num;
     }
 
-    [[nodiscard]] double calculateMedian() const {
-        if (times.empty()) return 0;
-
-        std::vector<double> sortedTimes = times;
-        std::ranges::sort(sortedTimes);
-        const size_t mid = sortedTimes.size() / 2;
-        return sortedTimes.size() % 2 == 0
-            ? sortedTimes[mid-1] + sortedTimes[mid] / 2.0
-            : sortedTimes[mid];
-    }
-
-    [[nodiscard]] double calculateStandardDeviation() const {
-        if (times.empty()) return 0;
-
-        double mean = calculateMean();
-        double sumSquaredDiff = std::transform_reduce( times.begin(), times.end(), 0.0, std::plus<>(), [mean](const double time) { return std::pow(time - mean, 2); } );
-        return std::sqrt(sumSquaredDiff / (times.size() - 1));
-    }
-
-    void clear() {times.clear();}
-    [[nodiscard]] size_t size() const { return  times.size(); }
+    void clear() {time_sum = 0.0; update_num = 0; };
 };
 
 #endif //BENCHMARK_H

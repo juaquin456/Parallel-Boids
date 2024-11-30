@@ -6,7 +6,7 @@
 #define HELPERS_H
 
 namespace Global {
-    inline int NUM_UPDATES = 2000;
+    inline int NUM_UPDATES = 100;
     inline int NUM_BOIDS = 1000;
     inline int NUM_THREADS = 4;
 }
