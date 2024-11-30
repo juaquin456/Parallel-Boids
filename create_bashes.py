@@ -13,7 +13,7 @@ bash_template = """#!/bin/bash
 #SBATCH --output={output_file}
 #SBATCH --cpus-per-task={num_cores}
 #SBATCH --partition=standard
-./Parallel_Boids 0 {num_boids} {num_cores} 
+../build/Parallel_Boids 0 {num_boids} {num_cores} 
 """
 num_cores = [1,2,4,8,16,32]
 num_boids = [100,1000,10000,100000,1000000,10000000]
@@ -43,12 +43,12 @@ bash_template = """#!/bin/bash
 #SBATCH --job-name={name}
 #SBATCH --output={output_file}
 #SBATCH --partition=standard
-./Parallel_Boids 1 {num_boids}
+../build/Parallel_Boids 1 {num_boids}
 """
 for boids in num_boids:
     # Define el nombre del archivo bash y el nombre de salida para los logs
     script_name = f"{output_dir}/seq_{boids}.sh"
-    output_file = f"output_{boids}.log"
+    output_file = f"output_seq_{boids}.log"
 
 
     # Crea el contenido del script usando la plantilla
