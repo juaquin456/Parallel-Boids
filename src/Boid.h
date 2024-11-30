@@ -9,7 +9,6 @@
 #include "Quadtree.h"
 #include "linalg.h"
 #include "chrono"
-#include "SFML/Graphics.hpp"
 #include "Helpers.h"
 
 typedef linalg::aliases::float2 Point;
