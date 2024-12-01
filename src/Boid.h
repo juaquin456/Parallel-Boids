@@ -124,7 +124,8 @@ class Boid {
     if (!this->predator)
       SDL_SetRenderDrawColor(renderer, 30, 10, 50, 255);
     else SDL_SetRenderDrawColor(renderer, 100, 100, 0, 255);
-    SDL_RenderDrawPoint(renderer, position.x, position.y);
+    SDL_Rect t{(int)position.x, (int)position.y, 2, 2};
+    SDL_RenderDrawRect(renderer, &t);
   }
 };
 

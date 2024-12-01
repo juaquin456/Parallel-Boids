@@ -6,8 +6,8 @@
 #define HELPERS_H
 
 namespace Constants {
-    constexpr int WIDTH = 1000;
-    constexpr int HEIGHT = 1000;
+    constexpr int WIDTH = 1280;
+    constexpr int HEIGHT = 720;
     constexpr int NUM_THREADS = 12;
     constexpr int MARGIN = 40;
     constexpr float FIXED_TIME_STEP = 16.67f;
